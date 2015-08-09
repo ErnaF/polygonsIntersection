@@ -1,1 +1,1 @@
-# polygonsIntersection
+# Schnittfläche zweier Polygone

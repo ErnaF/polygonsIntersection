@@ -1,0 +1,14 @@
+# Intellij
+.idea/
+.git/
+.settings/
+bin/
+*.iml
+*.iws
+out/
+doc/
+# Java
+*.class
+*.classpath
+*.project
+hs_err_pid*

@@ -1,11 +1,10 @@
-import cz.kitnarf.geom.Polygon2D;
+import math.geom2d.polygon.Polygon2D;
+import math.geom2d.polygon.Polygons2D;
+import math.geom2d.polygon.SimplePolygon2D;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
-
-import java.awt.geom.Area;
-import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +37,7 @@ public class polygonsIntersection {
      * @return polygons
      */
 
-    public static Polygon2D[] getPolygons(String data)
+    public static SimplePolygon2D[] getPolygons(String data)
     {
         JSONObject obj = (JSONObject) JSONValue.parse(data);
         JSONArray jsonArr = (JSONArray) obj.get("features");
@@ -51,30 +50,31 @@ public class polygonsIntersection {
 
         JSONArray coordinates2 = (JSONArray)((JSONObject)polygon2.get("geometry")).get("coordinates");
 
-        Polygon2D polygons[] = new Polygon2D[2];
+        SimplePolygon2D polygons[] = new SimplePolygon2D[2];
 
         JSONArray temparr = (JSONArray)coordinates1.get(0);
         JSONArray tempcoord;
-        Double x;
-        Double y;
-        polygons[0] = new Polygon2D();
+        double x1[] = new double[temparr.size()];
+        double y1[] = new double[temparr.size()];
+
         for(int i=0;i<temparr.size();i++)
         {
             tempcoord = (JSONArray)temparr.get(i);
-            x = ((Number)tempcoord.get(0)).doubleValue();
-            y = ((Number)tempcoord.get(1)).doubleValue();
-            polygons[0].addPoint(x, y);
+            x1[i] = ((Number)tempcoord.get(0)).doubleValue();
+            y1[i] = ((Number)tempcoord.get(1)).doubleValue();
         }
+        polygons[0] = new SimplePolygon2D(x1,y1);
 
         temparr = (JSONArray)coordinates2.get(0);
-        polygons[1] = new Polygon2D();
+        double x2[] = new double[temparr.size()];
+        double y2[] = new double[temparr.size()];
         for(int i=0;i<temparr.size();i++)
         {
             tempcoord = (JSONArray)temparr.get(i);
-            x = ((Number)tempcoord.get(0)).doubleValue();
-            y = ((Number)tempcoord.get(1)).doubleValue();
-            polygons[1].addPoint(x, y);
+            x2[i] = ((Number)tempcoord.get(0)).doubleValue();
+            y2[i] = ((Number)tempcoord.get(1)).doubleValue();
         }
+        polygons[1] = new SimplePolygon2D(x2, y2);
         return polygons;
     }
 
@@ -85,26 +85,13 @@ public class polygonsIntersection {
             if(args.length>0) {
                 data = readFile("GeoJsonShapes/" + args[0]);
 
-                Polygon2D polygons[] = getPolygons(data);
+                SimplePolygon2D polygons[] = getPolygons(data);
 
-                if (polygons[0].contains(polygons[1])) {
-                    System.out.println("Polygon 2 ist in Polygon 1 enthalten");
-                } else if (polygons[1].contains(polygons[0])) {
-                    System.out.println("Polygon 1 ist in Polygon 2 enthalten");
-                } else {
-                    Area a = new Area(polygons[0]);
-                    Area b = new Area(polygons[1]);
-                    b.intersect(a);
-                    Polygon2D result = new Polygon2D(b);
-                    if (result.getPointCount() == 0) {
-                        System.out.println("Diese Polynome schneiden sich nicht");
-                    } else {
-                        Point2D points[] = result.getPoints();
-                        System.out.println("Koordinaten des Ergebnisspolygons");
-                        for (int i = 0; i < result.getPointCount(); i++) {
-                            System.out.println(points[i].getX() + ", " + points[i].getY());
-                        }
-                    }
+                Polygon2D poly = Polygons2D.intersection(polygons[0],polygons[1]);
+                System.out.println("Fläche: "+poly.area());
+                for(int i=0;i<poly.vertexNumber();i++)
+                {
+                    System.out.println(poly.vertex(i).getX()+", "+poly.vertex(i).getY());
                 }
             }
             else
